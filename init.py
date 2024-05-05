@@ -29,7 +29,7 @@ def init_db(db_name='db.sqlite3'):
     CREATE TABLE user (
         user_id INTEGER PRIMARY KEY AUTOINCREMENT,
         line_id TEXT UNIQUE,
-        create_date DATE
+        create_date DATE DEFAULT CURRENT_TIMESTAMP
     )
     ''')
 
@@ -37,12 +37,12 @@ def init_db(db_name='db.sqlite3'):
     CREATE TABLE record (
         user_id INTEGER,
         record_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date DATE,
+        date DATE DEFAULT CURRENT_TIMESTAMP,
         item TEXT,
         cost INTEGER,
         category TEXT,
         comment TEXT,
-        create_date DATE,
+        create_date DATE DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES user(user_id)
     )
     ''')
