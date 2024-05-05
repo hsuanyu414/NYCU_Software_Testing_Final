@@ -3,4 +3,4 @@ class lineFunction:
         pass
 
     def create_line_user(self, line_id):
-        pass
+        return 123
