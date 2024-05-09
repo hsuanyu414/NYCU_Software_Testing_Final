@@ -15,14 +15,15 @@ class lineFunction:
         user = None
         error_message = None
 
-        # DB related
-        conn = sqlite3.connect(self.db_name)
-        cursor = conn.cursor()
-
+        
         # check if line_id is valid
         if not isinstance(line_id, str):
             error_message = 'invalid line_id parameter'
             return success, user, error_message
+        
+        # DB related
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
 
         # check if line_id is already in the database
         cursor.execute('SELECT * FROM user WHERE line_id = ?', (line_id,))
