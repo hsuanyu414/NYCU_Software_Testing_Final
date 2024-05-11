@@ -75,3 +75,55 @@ class accountingFunction:
         # DB related end
 
         return success, record, error_message
+    
+    def show_recent_record(self, user_id, num=5, days=3, type='num'):
+        success = False
+        records = None
+        error_message = None
+
+        if not isinstance(user_id, int):
+            error_message = 'invalid user_id parameter'
+            return success, records, error_message
+        
+        if not isinstance(num, int):
+            error_message = 'invalid num parameter'
+            return success, records, error_message
+        
+        if not isinstance(days, int):
+            error_message = 'invalid day parameter'
+            return success, records, error_message
+        
+        if type!='num' and type!='days':
+            error_message = 'invalid type parameter'
+            return success, records, error_message
+        
+        # DB related
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+
+        # check if user_id exists
+        cursor.execute('SELECT * FROM user WHERE user_id = ?', (user_id,))
+        row = cursor.fetchone()
+        if row == None:
+            error_message = 'user_id does not exist'
+            return success, records, error_message
+        
+        if type == 'num':
+            cursor.execute('SELECT * FROM record WHERE user_id = ? ORDER BY create_date DESC LIMIT ?', (user_id, num))
+        elif type == 'days':
+            cursor.execute('SELECT * FROM record WHERE user_id = ? AND create_date >= date("now", "-' + str(days) + ' day") ORDER BY create_date DESC', (user_id,))
+        
+        rows = cursor.fetchall()
+        records = []
+
+
+        for row in rows:
+            record = Record.Record(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
+            record.date = str(record.date)
+            record.create_date = str(record.create_date)
+            records.append(record)
+        success = True
+
+        return success, records, error_message
+            
+        

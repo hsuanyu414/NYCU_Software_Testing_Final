@@ -66,4 +66,87 @@ class TestCreateRecord:
         assert record == None
         assert error_message == 'user_id does not exist'
 
+class TestShowRecentRecord:
+    # def show_recent_record(user_id, count)
+    @pytest.mark.parametrize("test_user_id, test_num, test_day, test_type, expected", [
+        # assumse today is 20240103
+        (   1 ,  3 ,  1 ,  'num', 3 ), # assume there are more than 3 records in the database
+        (  '1',  3 ,  1 ,  'num', 'invalid user_id parameter'),
+        (   1 , '3',  1 ,  'num', 'invalid num parameter'),
+        (   1 ,  3 , '1',  'num', 'invalid day parameter'),
+        (   1 ,  3 ,  1 ,   123 , 'invalid type parameter')
+    ])
+    def test_show_recent_record(self, test_user_id, test_num, test_day, test_type, expected, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ User.User() ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        mock_obj.Cursor.fetchall_results = [
+            (1, 1, 20240101,   'apple', 20, 'food', 'good_to_eat', '20240101'), 
+            (1, 2, 20240102,  'banana', 30, 'food', 'good_to_eat', '20240102'), 
+            (1, 3, 20240103, 'coconut', 40, 'food', 'good_to_eat', '20240103')
+        ]
+        mock_obj.Cursor.fetchall = lambda: mock_obj.Cursor.fetchall_results
 
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        # Act
+        success, records, error_message = module.show_recent_record(test_user_id, test_num, test_day, test_type)
+
+        # Assert
+        if success:
+            assert len(records) == expected
+        else:
+            assert error_message == expected
+
+    @pytest.mark.parametrize("test_user_id, test_num, test_day, test_type, expected", [
+        (   1 ,  3 ,  1 , 'days', 1 ), # assume there is only 1 record in the database which is created today
+    ])
+    def test_show_recent_record_days(self, test_user_id, test_num, test_day, test_type, expected, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ User.User() ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        mock_obj.Cursor.fetchall_results = [
+            (1, 1, 20240103, 'coconut', 40, 'food', 'good_to_eat', '20240103')
+        ]
+        mock_obj.Cursor.fetchall = lambda: mock_obj.Cursor.fetchall_results
+        
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        # Act
+        success, records, error_message = module.show_recent_record(test_user_id, test_num, test_day, test_type)
+
+        # Assert
+        if success:
+            assert len(records) == expected
+        else:
+            assert error_message == expected
+
+
+    @pytest.mark.parametrize("test_user_id, test_num, test_day, test_type, expected", [
+        (   2,   3 ,  1 , 'num', 'user_id does not exist')
+    ])
+    def test_show_recent_record_user_id_not_exist(self, test_user_id, test_num, test_day, test_type, expected, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [None]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        # Act
+        success, records, error_message = module.show_recent_record(test_user_id, test_num, test_day, test_type)
+
+        # Assert
+        assert not success
+        assert records == None
+        assert error_message == expected
+    
+    
