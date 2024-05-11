@@ -126,4 +126,5 @@ class accountingFunction:
 
         return success, records, error_message
             
-        
+    def search_record(self, user_id, date_from, date_to=None):
+        return None, None, None
