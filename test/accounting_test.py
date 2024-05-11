@@ -3,7 +3,7 @@ import pytest
 import sys
 
 sys.path.append('..')
-from accounting import account
+from accounting import accounting
 from models import User, Record
 from mock_obj import mock_db_conn
 
