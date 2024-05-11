@@ -27,7 +27,7 @@ class TestCreateRecord:
         mock_obj.Cursor.fetchone_results = ['None', (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
         mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
 
-        # mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
         module = accounting.accountingFunction()
 
         #Act
