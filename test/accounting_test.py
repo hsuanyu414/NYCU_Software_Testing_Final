@@ -149,4 +149,62 @@ class TestShowRecentRecord:
         assert records == None
         assert error_message == expected
     
-    
+class TestSearchRecord:
+    @pytest.mark.parametrize("test_user_id, date_from, date_to, expected", [
+        # assumse today is 20240103
+        (   1 , '20240101', '20240103', 3 ), # assume there are 3 records in the database from 20240101 to 20240103
+        (  '1', '20240101', '20240103', 'invalid user_id parameter'),
+        (   1 ,  20240101 , '20240103', 'invalid date_from parameter'),
+        (   1 , '20240101',  20240103 , 'invalid date_to parameter')
+    ])
+    def test_search_record_normal_1(self, test_user_id, date_from, date_to, expected, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ User.User() ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        mock_obj.Cursor.fetchall_results = [
+            (1, 1, 20240101,   'apple', 20, 'food', 'good_to_eat', '20240101'), 
+            (1, 2, 20240102,  'banana', 30, 'food', 'good_to_eat', '20240102'), 
+            (1, 3, 20240103, 'coconut', 40, 'food', 'good_to_eat', '20240103')
+        ]
+        mock_obj.Cursor.fetchall = lambda: mock_obj.Cursor.fetchall_results
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        # Act
+        success, records, error_message = module.search_record(test_user_id, date_from, date_to)
+
+        # Assert
+        if success:
+            assert len(records) == expected
+        else:
+            assert error_message == expected
+
+    @pytest.mark.parametrize("test_user_id, date_from, date_to, expected", [
+        (   1 , '20240101',       None, 1 ), # assume there are 2 records in the database from 20240101 to 20240102
+    ])
+    # this test case is to test the case where date_to is None, it suppose to return all records at date_from
+    def test_search_record_normal_2(self, test_user_id, date_from, date_to, expected, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ User.User() ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        mock_obj.Cursor.fetchall_results = [
+            (1, 1, 20240101,   'apple', 20, 'food', 'good_to_eat', '20240101'),
+        ]
+        mock_obj.Cursor.fetchall = lambda: mock_obj.Cursor.fetchall_results
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        # Act
+        success, records, error_message = module.search_record(test_user_id, date_from, date_to)
+
+        # Assert
+        if success:
+            assert len(records) == expected
+        else:
+            assert error_message == expected
