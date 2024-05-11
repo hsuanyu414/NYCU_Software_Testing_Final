@@ -75,3 +75,6 @@ class accountingFunction:
         # DB related end
 
         return success, record, error_message
+    
+    def show_recent_record(self, user_id, num=5, days=3, type='num'):
+        return None, None, None
