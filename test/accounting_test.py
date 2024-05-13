@@ -208,3 +208,166 @@ class TestSearchRecord:
             assert len(records) == expected
         else:
             assert error_message == expected
+class TestUpdateRecord:
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
+        (   2 , 1, 'apple',  20 , 'food', 'good_to_eat', 'the record of this id does not exist')
+    ])
+    def test_update_user_record_id_is_exist( self, test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ None]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_item, test_cost, test_category, test_comment)
+
+        assert not success
+        assert record == None
+        assert error_message == expected
+    
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
+        (  '1', 1, 'apple',  20 , 'food', 'good_to_eat', 'invalid user_id parameter'),
+        (1, '1', 'apple',  20 , 'food', 'good_to_eat', 'invalid record_id parameter'),
+        (1, 1, 20, 20, 'food', 'good_to_eat', 'invalid item parameter'),
+        (1, 1, 'apple', '20', 'food', 'good_to_eat', 'invalid cost parameter'),
+        (1, 1, 'apple',  20 ,   123 , 'good_to_eat', 'invalid category parameter'),
+        (1, 1, 'apple',  20 , 'food',          123 , 'invalid comment parameter')
+    ])
+    def test_update_user_record_invalid_parameter( self, test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_item, test_cost, test_category, test_comment)
+
+        assert not success
+        assert record == None
+        assert error_message == expected
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
+        (   1 , 1, 'apple',  20 , 'food', 'good_to_eat', Record.Record(1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101') )
+    ])
+    def test_update_success( self, test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results[0]
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_item, test_cost, test_category, test_comment)
+        assert success == True
+        assert record.user_id == expected.user_id
+        assert record.date == expected.date
+        assert record.item == expected.item
+        assert record.cost == expected.cost
+        assert record.category == expected.category
+        assert record.comment == expected.comment
+        assert record.create_date != None   
+        assert error_message == None
+class TestDeleteRecord:
+    @pytest.mark.parametrize("test_user_id, test_record_id, expected", [
+        (   2 , 1, 'the record of this id does not exist')
+    ])
+    def test_delete_user_record_id_is_exist( self, test_user_id, test_record_id, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ None]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, error_message = module.delete_record(test_user_id, test_record_id)
+
+        assert not success
+        assert error_message == expected
+    
+    @pytest.mark.parametrize("test_user_id, test_record_id, expected", [
+        (  '1', 1, 'invalid user_id parameter'),
+        (1, '1', 'invalid record_id parameter')
+    ])
+    def test_delete_user_record_invalid_parameter( self, test_user_id, test_record_id, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, error_message = module.delete_record(test_user_id, test_record_id)
+
+        assert not success
+        assert error_message == expected
+    @pytest.mark.parametrize("test_user_id, test_record_id, expected", [
+        (   1 , 1, None )
+    ])
+    def test_delete_success( self, test_user_id, test_record_id, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results[0]
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, error_message = module.delete_record(test_user_id, test_record_id)
+        assert success == True
+        assert error_message == None
+
+class TestRecordExport:
+    @pytest.mark.parametrize("test_user_id, test_method, expected", [
+        (   2 , 'this month', 'user_id does not exist')
+    ])
+    def test_export_user_id_is_exist( self, test_user_id, test_method, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ None]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, error_message = module.export_record(test_user_id, test_method)
+
+        assert success == False
+        assert error_message == expected
+    
+    @pytest.mark.parametrize("test_user_id, test_method, expected", [
+        (  '1', 'this month', 'invalid user_id parameter'),
+        (1, '123', 'invalid method parameter')
+    ])
+    def test_export_invalid_parameter( self, test_user_id, test_method, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, error_message = module.export_record(test_user_id, test_method)
+
+        assert success == False
+        assert error_message == expected
