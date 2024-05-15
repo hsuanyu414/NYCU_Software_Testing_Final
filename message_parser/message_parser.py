@@ -14,9 +14,10 @@ class MessageParser:
 
         self.command_pattern = {
             'create_record': r'^!記帳\s+(\d{8})\s+(\w+)\s+(\d+)\s+(\w+)\s+(.*)$',
-            'show_recent_record': r'^!最近記帳(?: (?P<method>最近(?:筆數|天數))(?= )(?P<value>\d+))?$',
+            'show_recent_record': r'^!最近記帳(?:\s+(?P<method>最近筆數|最近天數))?(?:\s+(?P<value>\d+))?$',
             'search_record': r'^!查詢 (?P<date_from>\d{8})(?:\s+(?P<date_to>\d{8})?)?$',
-            'update_record': r'^!修改記帳 (?P<record_id>\w+)(?:\s+(?P<key>日期|項目|金額(?=\s+\d+)|分類|備註)(?P<value>\S+))*$',
+            'update_record': r'^!修改記帳 (?P<record_id>\w+)(?:\s+(?P<key>日期|項目|金額(?=\s+\d+)|類別|備註) (?P<value>\w+))*$',
+            'update_record_key_value': r'(?P<key>日期|項目|金額(?=\s+\d+)|類別|備註) (?P<value>\w+)',
             'delete_record': r'^!刪除記帳 (?P<record_id>\w+)$',
             'export_record': r'^!匯出(?:\s+(本月|本年|全部))?$'
         }
@@ -90,8 +91,10 @@ class MessageParser:
                     param_list = [command]
                 elif method is not None and value is None:
                     param_list = [command, self.show_recent_record_type_map[method]]
+                elif method is None and value is not None:
+                    param_list = [command, int(value)]
                 elif method is not None and value is not None:
-                    param_list = [command, self.show_recent_record_type_map[method], int(value)]
+                    param_list = [command, int(value), self.show_recent_record_type_map[method]]
                 success = True
             else:
                 error_message = 'invalid pattern'
@@ -111,20 +114,21 @@ class MessageParser:
             match = re.match(self.command_pattern[command], user_message)
             if match:
                 record_id = match.group('record_id')
-                key = match.group('key')
-                value = match.group('value')
-                for i in range(len(match.captures('key'))):
-                    if key[i] == '日期':
-                        date = value[i]
-                    elif key[i] == '項目':
-                        item = value[i]
-                    elif key[i] == '金額':
-                        cost = int(value[i])
-                    elif key[i] == '分類':
-                        category = value[i]
-                    elif key[i] == '備註':
-                        comment = value[i]
-                param_list = [command, record_id, item, cost, category, comment]
+                pairs = [(m.group('key'), m.group('value')) for m in re.finditer(self.command_pattern[command+"_key_value"], user_message)]
+                print(pairs)
+                date = item = cost = category = comment = None
+                for key, value in pairs:
+                    if key == '日期':
+                        date = value
+                    elif key == '項目':
+                        item = value
+                    elif key == '金額':
+                        cost = int(value)
+                    elif key == '類別':
+                        category = value
+                    elif key == '備註':
+                        comment = value
+                param_list = [command, record_id, date, item, cost, category, comment]
                 success = True
             else:
                 error_message = 'invalid pattern'
