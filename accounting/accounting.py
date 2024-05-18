@@ -1,6 +1,7 @@
 import sqlite3
-
 import sys
+import csv
+from fileio_wrapper import Fileio
 sys.path.append('..')
 
 from models import Record
@@ -273,14 +274,14 @@ class accountingFunction:
         #transit a csv file to the user
         success = False
         error_message = None
-
+        link = None
         if not isinstance(user_id, int):
             error_message = 'invalid user_id parameter'
-            return success, error_message
+            return success, error_message, link
         
         if method != 'this month' and method != 'this year' and method != 'all':
             error_message = 'invalid method parameter'
-            return success, error_message
+            return success, error_message, link
         
         # DB related
         conn = sqlite3.connect(self.db_name)
@@ -289,9 +290,10 @@ class accountingFunction:
         # check if user_id exists
         cursor.execute('SELECT * FROM user WHERE user_id = ?', (user_id,))
         row = cursor.fetchone()
+        link = row
         if row == None:
             error_message = 'user_id does not exist'
-            return success, error_message
+            return success, error_message, link
         
         if method == 'this_month':
             cursor.execute('SELECT * FROM record WHERE user_id = ? AND date >= date("now", "start of month")', (user_id,))
@@ -302,18 +304,21 @@ class accountingFunction:
 
         rows = cursor.fetchall()
         conn.close()
-        # DB related end
-
-        # write to csv
-        # import csv
-        # with open('export.csv', 'w', newline='') as csvfile:
-        #     writer = csv.writer(csvfile)
-        #     writer.writerow(['record_id', 'user_id', 'date', 'item', 'cost', 'category', 'comment', 'create_date'])
-        #     for row in rows:
-        #         writer.writerow(row)
-        success = True
-
-        return success, error_message
+        # write to csv file
+        filepath = 'export.csv'
+        
+        with open(filepath, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['record_id', 'user_id', 'date', 'item', 'cost', 'category', 'comment', 'create_date'])
+            for row in rows:
+                writer.writerow(row)
+        # upload to file.io
+        resp = Fileio.upload(filepath)
+        success = resp['success']  # True if upload was successful
+        link = resp['link'] 
+        if not success:
+            error_message = 'upload failed'
+        return success, error_message, link
 
 
 
