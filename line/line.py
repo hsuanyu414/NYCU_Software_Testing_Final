@@ -3,7 +3,6 @@ import sqlite3
 import sys
 sys.path.append('..')
 
-import ipdb
 from models import User
 
 class lineFunction:
