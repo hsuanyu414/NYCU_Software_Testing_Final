@@ -1,6 +1,7 @@
 import sqlite3
 import sys
 import csv
+import os
 from fileio_wrapper import Fileio
 sys.path.append('..')
 
@@ -305,7 +306,7 @@ class accountingFunction:
         rows = cursor.fetchall()
         conn.close()
         # write to csv file
-        filepath = 'export.csv'
+        filepath = 'export_'+ str(user_id) +'.csv'
         
         with open(filepath, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -313,9 +314,10 @@ class accountingFunction:
             for row in rows:
                 writer.writerow(row)
         # upload to file.io
-        resp = Fileio.upload(filepath)
+        resp = Fileio.upload(filepath, expires="5m")
         success = resp['success']  # True if upload was successful
         link = resp['link'] 
+        os.remove(filepath)
         if not success:
             error_message = 'upload failed'
         return success, error_message, link
