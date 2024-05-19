@@ -1,7 +1,6 @@
 import pytest
-
 import sys
-
+from fileio_wrapper import Fileio
 sys.path.append('..')
 from accounting import accounting
 from models import User, Record
@@ -347,7 +346,7 @@ class TestRecordExport:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message = module.export_record(test_user_id, test_method)
+        success, error_message, link = module.export_record(test_user_id, test_method)
 
         assert success == False
         assert error_message == expected
@@ -367,7 +366,37 @@ class TestRecordExport:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message = module.export_record(test_user_id, test_method)
-
+        success, error_message, link = module.export_record(test_user_id, test_method)
         assert success == False
         assert error_message == expected
+        assert link == None
+    @pytest.mark.parametrize("test_user_id, test_method, expected", [
+        (   1 , 'this month', 'export success' )
+    ])
+    def test_export_success( self, test_user_id, test_method, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ User.User() ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        mock_obj.Cursor.fetchall_results = [
+            (1, 1, 20240103, 'coconut', 40, 'food', 'good_to_eat', '20240103')
+        ]
+        mock_obj.Cursor.fetchall = lambda: mock_obj.Cursor.fetchall_results
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        open = mocker.mock_open()
+        mocker.patch('builtins.open', open)
+        mock_upload_response = {
+            'success': True,
+            'link': 'https://example.com/file_link'
+        }
+        mocker.patch.object(Fileio, 'upload', return_value=mock_upload_response)
+        # mock os.remove
+        mocker.patch('os.remove', return_value=None)
+        module = accounting.accountingFunction()
+        #Act
+        success, error_message, link = module.export_record(test_user_id, test_method)
+        assert success == True
+        assert error_message == None
+        assert link == None
+        assert link != ''
