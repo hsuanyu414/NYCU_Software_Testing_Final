@@ -128,4 +128,91 @@ class TestMain():
         The tests will check if the functions are called with the correct parameters.
         """
 
-        pass
+        mock_event = mock_message_event(
+            reply_token = reply_token_id,
+            type = 'message',
+            source = mock_source(type='user', group_id=None, user_id='1'),
+            message = mock_message(text=message_text)
+        )
+
+        with patch('main.MessagingApi') as mock_messaging_api:
+            mock_parser_instance = mock_parser.return_value
+            mock_parser_instance.parse.return_value = (parser_success, parser_output, parser_error_message)
+
+            mock_line_instance = mock_line.return_value
+            mock_line_instance.create_line_user.return_value = (line_success, line_user_record, line_error_message)
+
+            if test_case_name == 'create_record':
+                mock_accounting_instance = mock_accounting.return_value
+                mock_accounting_instance.create_record.return_value = (accounting_success, accounting_record, accounting_error_message)
+            elif test_case_name == 'show_recent_record':
+                mock_accounting_instance = mock_accounting.return_value
+                mock_accounting_instance.show_recent_record.return_value = (accounting_success, accounting_record, accounting_error_message)
+            elif test_case_name == 'search_record':
+                mock_accounting_instance = mock_accounting.return_value
+                mock_accounting_instance.search_record.return_value = (accounting_success, accounting_record, accounting_error_message)
+            elif test_case_name == 'update_record':
+                mock_accounting_instance = mock_accounting.return_value
+                mock_accounting_instance.update_record.return_value = (accounting_success, accounting_record, accounting_error_message)
+            elif test_case_name == 'delete_record':
+                mock_accounting_instance = mock_accounting.return_value
+                mock_accounting_instance.delete_record.return_value = (accounting_success, accounting_record, accounting_error_message)
+            elif test_case_name == 'export_record':
+                mock_accounting_instance = mock_accounting.return_value
+                mock_accounting_instance.export_record.return_value = (accounting_success, accounting_record, accounting_error_message)
+
+            mock_messaging_api_instance = mock_messaging_api.return_value
+            mock_messaging_api_instance.reply_message_with_http_info.return_value = messaging_api_response
+
+            handle_message(mock_event)
+
+            mock_line_instance.create_line_user.assert_called_once_with('1')
+            mock_parser_instance.parse.assert_called_once_with(message_text)
+
+            if test_case_name == 'create_record':
+                mock_accounting_instance.create_record.assert_called_once_with(
+                    user_id = line_user_record.user_id,
+                    date = parser_output[1],
+                    item = parser_output[2],
+                    cost = parser_output[3],
+                    category = parser_output[4],
+                    comment = parser_output[5]
+                )
+            elif test_case_name == 'show_recent_record':
+                mock_accounting_instance.show_recent_record.assert_called_once_with(
+                    user_id = line_user_record.user_id,
+                    num = parser_output[1],
+                    type = parser_output[2]
+                )
+            elif test_case_name == 'search_record':
+                mock_accounting_instance.search_record.assert_called_once_with(
+                    user_id = line_user_record.user_id,
+                    date_from = parser_output[1],
+                    date_to = parser_output[2]
+                )
+            elif test_case_name == 'update_record':
+                mock_accounting_instance.update_record.assert_called_once_with(
+                    user_id = line_user_record.user_id,
+                    record_id = parser_output[1],
+                    date = parser_output[2],
+                    item = parser_output[3],
+                    cost = parser_output[4],
+                    category = parser_output[5],
+                    comment = parser_output[6]
+                )
+            elif test_case_name == 'delete_record':
+                mock_accounting_instance.delete_record.assert_called_once_with(
+                    user_id = line_user_record.user_id,
+                    record_id = parser_output[1]
+                )
+            elif test_case_name == 'export_record':
+                mock_accounting_instance.export_record.assert_called_once_with(
+                    user_id = line_user_record.user_id,
+                    method = parser_output[1]
+                )
+                
+            expected_reply_message_request = ReplyMessageRequest(
+                reply_token = reply_token_id,
+                messages = [TextMessage(text=reply_message_text)]
+            )
+            mock_messaging_api_instance.reply_message_with_http_info.assert_called_once_with(expected_reply_message_request)
