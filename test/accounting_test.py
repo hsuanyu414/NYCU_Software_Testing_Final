@@ -290,7 +290,7 @@ class TestDeleteRecord:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message = module.delete_record(test_user_id, test_record_id)
+        success,_, error_message = module.delete_record(test_user_id, test_record_id)
 
         assert not success
         assert error_message == expected
@@ -310,7 +310,7 @@ class TestDeleteRecord:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message = module.delete_record(test_user_id, test_record_id)
+        success,_, error_message = module.delete_record(test_user_id, test_record_id)
 
         assert not success
         assert error_message == expected
@@ -327,7 +327,7 @@ class TestDeleteRecord:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message = module.delete_record(test_user_id, test_record_id)
+        success, _, error_message = module.delete_record(test_user_id, test_record_id)
         assert success == True
         assert error_message == None
 
@@ -346,8 +346,9 @@ class TestRecordExport:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message, link = module.export_record(test_user_id, test_method)
+        success, link, error_message = module.export_record(test_user_id, test_method)
 
+        assert link == None
         assert success == False
         assert error_message == expected
     
@@ -366,7 +367,7 @@ class TestRecordExport:
         module = accounting.accountingFunction()
 
         #Act
-        success, error_message, link = module.export_record(test_user_id, test_method)
+        success, link, error_message = module.export_record(test_user_id, test_method)
         assert success == False
         assert error_message == expected
         assert link == None
@@ -395,8 +396,8 @@ class TestRecordExport:
         mocker.patch('os.remove', return_value=None)
         module = accounting.accountingFunction()
         #Act
-        success, error_message, link = module.export_record(test_user_id, test_method)
+        success, link, error_message = module.export_record(test_user_id, test_method)
         assert success == True
         assert error_message == None
-        assert link == None
+        assert link != None
         assert link != ''
