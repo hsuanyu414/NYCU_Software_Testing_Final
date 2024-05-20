@@ -240,12 +240,12 @@ class accountingFunction:
         # check if user_id is valid
         if not isinstance(user_id, int):
             error_message = 'invalid user_id parameter'
-            return success, error_message
+            return success, None, error_message
 
         # check if record_id is valid
         if not isinstance(record_id, int):
             error_message = 'invalid record_id parameter'
-            return success, error_message
+            return success, None, error_message
 
         # DB related
         conn = sqlite3.connect(self.db_name)
@@ -256,7 +256,7 @@ class accountingFunction:
         row = cursor.fetchone()
         if row == None:
             error_message = 'the record of this id does not exist'
-            return success, error_message
+            return success, None, error_message
 
         try:
             cursor.execute('DELETE FROM record WHERE record_id = ? AND user_id = ?', (record_id, user_id))
@@ -268,7 +268,7 @@ class accountingFunction:
             conn.rollback()
 
         conn.close()
-        return success, error_message
+        return success, None, error_message
     
     def export_record(self, user_id, method='this month'):
         #method: may this_month, this_year, all
@@ -278,11 +278,11 @@ class accountingFunction:
         link = None
         if not isinstance(user_id, int):
             error_message = 'invalid user_id parameter'
-            return success, error_message, link
+            return success, link, error_message 
         
         if method != 'this month' and method != 'this year' and method != 'all':
             error_message = 'invalid method parameter'
-            return success, error_message, link
+            return success, link, error_message 
         
         # DB related
         conn = sqlite3.connect(self.db_name)
@@ -294,7 +294,7 @@ class accountingFunction:
         link = row
         if row == None:
             error_message = 'user_id does not exist'
-            return success, error_message, link
+            return success, link, error_message 
         
         if method == 'this_month':
             cursor.execute('SELECT * FROM record WHERE user_id = ? AND date >= date("now", "start of month")', (user_id,))
@@ -320,7 +320,7 @@ class accountingFunction:
         os.remove(filepath)
         if not success:
             error_message = 'upload failed'
-        return success, error_message, link
+        return success, link, error_message
 
 
 
