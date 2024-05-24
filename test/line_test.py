@@ -60,3 +60,10 @@ class TestLine:
                 assert user.line_id == expected
             else:
                 assert error_message == expected
+
+    @pytest.mark.parametrize("test_line_id, expected", [
+        ('U123456789', 'U123456789'),
+        (123456789, 'invalid line_id parameter')
+    ])
+    def test_get_user_by_line_id(self, test_line_id, expected, mocker):
+        pass
