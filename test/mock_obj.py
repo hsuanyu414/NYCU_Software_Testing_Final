@@ -38,3 +38,11 @@ class mock_message_event:
         self.type = type
         self.source = source
         self.message = message
+
+class mock_configparser:
+    def __init__(self):
+        pass
+    def read(self, filename):
+        return 'test_file'
+    def get(self, section, option):
+        return 'test_value'
