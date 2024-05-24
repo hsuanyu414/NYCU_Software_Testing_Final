@@ -17,3 +17,24 @@ class mock_db_conn:
         pass
     def close(self):
         pass
+
+class mock_message:
+    def __init__(self, text):
+        self.text = text
+
+class mock_source:
+    def __init__(self, type, group_id, user_id):
+        self.type = type
+        self.group_id = group_id
+        self.user_id = user_id
+
+class mock_message_event:
+    """
+    Mock the object of linebot.models.MessageEvent
+    https://developers.line.biz/en/reference/messaging-api/#message-event
+    """
+    def __init__(self, reply_token, type, source, message):
+        self.reply_token = reply_token
+        self.type = type
+        self.source = source
+        self.message = message
