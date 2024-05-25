@@ -27,7 +27,7 @@ from message_parser import message_parser
 app = Flask(__name__)
 
 config = configparser.ConfigParser()
-config.read('../config.ini')
+config.read('./config.ini')
 
 try:
     configuration = Configuration(config.get('line-bot', 'channel_access_token'))
@@ -54,7 +54,7 @@ def callback():
 
     return 'OK'
 
-@handler.add(MessageEvent, message=TextMessage)
+@handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     """
     Handle user message and reply
@@ -256,3 +256,6 @@ def handle_message(event):
                     messages=[TextMessage(text=reply_message)]
                 )
             )
+
+if __name__ == "__main__":
+    app.run(port=8081, debug=True)

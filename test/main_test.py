@@ -1,12 +1,16 @@
 import pytest
 
 from unittest.mock import patch
+from linebot import WebhookHandler
 from linebot.v3.messaging import TextMessage, ReplyMessageRequest
 
-from mock_obj import mock_message_event, mock_source, mock_message
+from mock_obj import mock_message_event, mock_source, mock_message, mock_configparser
 
 import sys
 sys.path.append('..')
+
+MagicMock = patch('configparser.ConfigParser', side_effect=mock_configparser)
+MagicMock.start()
 
 from main import handle_message
 from models import Record, User
@@ -105,6 +109,7 @@ class TestMain():
         "messaging_api_response, reply_message_text",
         test_cases_full_info
     )
+    # @patch('configparser.ConfigParser', side_effect=mock_configparser)
     @patch('main.ApiClient')
     @patch('main.line.lineFunction')
     @patch('main.accounting.accountingFunction')
