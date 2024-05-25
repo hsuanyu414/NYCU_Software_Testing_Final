@@ -61,6 +61,20 @@ class TestLine:
             else:
                 assert error_message == expected
 
+    def test_create_line_user_error_while_creating(self, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+
+        module = line.lineFunction()
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        
+        # Act
+        success, user, error_message = module.create_line_user('U123456789')
+        
+        # Assert
+        assert error_message != None
+
     @pytest.mark.parametrize("test_line_id, expected", [
         ('U123456789', 'U123456789'),
         (123456789, 'invalid line_id parameter')
@@ -82,3 +96,18 @@ class TestLine:
             assert user.line_id == expected
         else:
             assert error_message == expected
+
+    def test_get_user_by_line_id_not_found(self, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.fetchone_results = [None]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        module = line.lineFunction()
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        
+        # Act
+        success, user, error_message = module.get_user_by_line_id('U123456789')
+        
+        # Assert
+        assert error_message == 'user not found'

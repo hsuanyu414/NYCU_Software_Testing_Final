@@ -65,6 +65,31 @@ class TestCreateRecord:
         assert record == None
         assert error_message == 'user_id does not exist'
 
+    def test_create_record_error_while_creating(self, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [1]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        exec_count = 0
+        def raiseExceptionsWhileSecondExecute(*args):
+            nonlocal exec_count
+            exec_count += 1
+            if exec_count == 2:
+                raise sqlite3.Error('Error while creating record')
+        mock_obj.Cursor.execute = raiseExceptionsWhileSecondExecute
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        
+        module = accounting.accountingFunction()
+
+        
+        #Act
+        success, record, error_message = module.create_record(1, '20240101', 'apple', 20, 'food', 'good_to_eat')
+
+        #Assert
+        assert error_message != None
+
 class TestShowRecentRecord:
     # def show_recent_record(user_id, count)
     @pytest.mark.parametrize("test_user_id, test_num, test_day, test_type, expected", [
@@ -207,6 +232,25 @@ class TestSearchRecord:
             assert len(records) == expected
         else:
             assert error_message == expected
+
+    def test_search_record_normal_no_user(self, mocker):
+        # Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ None ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        # Act
+        success, records, error_message = module.search_record(1, '20240101', '20240103')
+
+        # Assert
+        assert not success
+        assert records == None
+        assert error_message == 'user_id does not exist'
+
 class TestUpdateRecord:
     @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
         (   2 , 1, 'apple',  20 , 'food', 'good_to_eat', 'the record of this id does not exist')
@@ -275,6 +319,30 @@ class TestUpdateRecord:
         assert record.comment == expected.comment
         assert record.create_date != None   
         assert error_message == None
+
+    def test_update_error_while_updating(self, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results[0]
+        exec_count = 0
+        def raiseExceptionsWhileSecondExecute(*args):
+            nonlocal exec_count
+            exec_count += 1
+            if exec_count == 2:
+                raise sqlite3.Error('Error while updating record')
+        mock_obj.Cursor.execute = raiseExceptionsWhileSecondExecute
+
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, record, error_message = module.update_record(1, 1, 'apple', 20, 'food', 'good_to_eat')
+
+        #Assert
+        assert error_message != None
+
 class TestDeleteRecord:
     @pytest.mark.parametrize("test_user_id, test_record_id, expected", [
         (   2 , 1, 'the record of this id does not exist')
