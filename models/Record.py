@@ -10,4 +10,4 @@ class Record:
         self.create_date = create_date
 
     def __str__(self):
-        return f"[record_id: {self.record_id} \n user_id: {self.user_id} \n date: {self.date} \n item: {self.item} \n cost: {self.cost} \n category: {self.category} \n comment: {self.comment} \n create_date: {self.create_date}]\n\n"
+        return f"[record_id: {self.record_id}\n date: {self.date}\n item: {self.item}\n cost: {self.cost}\n category: {self.category}\n comment: {self.comment}\n create_date: {self.create_date}]\n\n"

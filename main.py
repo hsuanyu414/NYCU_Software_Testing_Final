@@ -78,16 +78,15 @@ def handle_message(event):
         my_line = line.lineFunction()
         line_success, line_user, line_error_message = my_line.create_line_user(event.source.user_id)
         if not line_success and line_error_message == 'line_id already exists':
-            line_success, line_user, line_error_message = my_line.get_line_user(event.source.user_id)
+            line_success, line_user, line_error_message = my_line.get_user_by_line_id(event.source.user_id)
         if not line_success:
             reply_message = "Create Line User error: " + line_error_message
-            line_bot_api.reply_message_with_http_info(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=reply_message)]
-                )
+            reply_message_request = ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=reply_message)]
             )
-            return
+            line_bot_api.reply_message_with_http_info(reply_message_request)
+            return reply_message_request
         
         user_id = line_user.user_id
         
@@ -102,13 +101,12 @@ def handle_message(event):
         parser_success, parser_param_list, parser_error_message = my_parser.parse(user_message)
         if not parser_success:
             reply_message = "Parse error: " + parser_error_message
-            line_bot_api.reply_message_with_http_info(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=reply_message)]
-                )
+            reply_message_request = ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=reply_message)]
             )
-            return
+            line_bot_api.reply_message_with_http_info(reply_message_request)
+            return reply_message_request
         else:
             my_line = line.lineFunction()
             my_accounting = accounting.accountingFunction()
@@ -250,12 +248,13 @@ def handle_message(event):
             else:
                 reply_message = "Invalid command"
 
-            line_bot_api.reply_message_with_http_info(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=reply_message)]
-                )
+            reply_message_request = ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=reply_message)]
             )
+            line_bot_api.reply_message_with_http_info(reply_message_request)
+
+            return reply_message_request
 
 if __name__ == "__main__":
     app.run(port=8081, debug=True)
