@@ -29,11 +29,8 @@ app = Flask(__name__)
 config = configparser.ConfigParser()
 config.read('./config.ini')
 
-try:
-    configuration = Configuration(config.get('line-bot', 'channel_access_token'))
-    handler = WebhookHandler(config.get('line-bot', 'channel_secret'))
-except Exception as e:
-    pass
+configuration = Configuration(access_token = config.get('line-bot', 'channel_access_token'))
+handler = WebhookHandler(config.get('line-bot', 'channel_secret'))
 
 
 @app.route("/callback", methods=['POST'])
@@ -54,7 +51,7 @@ def callback():
 
     return 'OK'
 
-@handler.add(MessageEvent, message=TextMessageContent)
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     """
     Handle user message and reply

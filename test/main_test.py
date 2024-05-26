@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import patch
 from linebot import WebhookHandler
 from linebot.v3.messaging import TextMessage, ReplyMessageRequest
+from linebot.v3.exceptions import InvalidSignatureError
 
 from mock_obj import mock_message_event, mock_source, mock_message, mock_configparser
 
@@ -12,7 +13,7 @@ sys.path.append('..')
 MagicMock = patch('configparser.ConfigParser', side_effect=mock_configparser)
 MagicMock.start()
 
-from main import handle_message
+from main import handle_message, app
 from models import Record, User
 
 test_cases_full_info = [
@@ -102,6 +103,49 @@ test_cases_full_info = [
 class TestMain():
 
     @pytest.mark.parametrize(
+        "test_case_name, signature, expected_response_status_code, expected_response_data",
+        [
+            ('valid_signature', 'valid_signature', 200, b'OK'),
+            ('invalid_signature', 'invalid_signature', 400, None)
+        ]
+    )
+    @patch('linebot.v3.WebhookHandler.handle')
+    def test_callback_valid(
+        self, mock_verify,
+        test_case_name, signature, expected_response_status_code, expected_response_data):
+        """
+        Test flask app callback function and see if the response is correct.
+        """
+        if test_case_name == 'valid_signature':
+            mock_verify.return_value = True
+        elif test_case_name == 'invalid_signature':
+            mock_verify.side_effect = InvalidSignatureError('Invalid signature')
+
+        mock_header = {'X-Line-Signature': signature}
+        mock_request = {
+            'events': [
+                {
+                    'replyToken': 'test_reply_token_id',
+                    'type': 'message',
+                    'source': {
+                        'type': 'user',
+                        'userId': '1'
+                    },
+                    'message': {
+                        'type': 'text',
+                        'text': 'test_message'
+                    }
+                }
+            ]
+        }
+
+        with app.test_client() as client:
+            response = client.post('/callback', json = mock_request, headers = mock_header)
+            assert response.status_code == expected_response_status_code
+            if expected_response_status_code == 200:
+                assert response.data == expected_response_data
+
+    @pytest.mark.parametrize(
         "test_case_name, reply_token_id, message_text, "
         "parser_success, parser_output, parser_error_message, "
         "accounting_success, accounting_record, accounting_error_message, "
@@ -109,7 +153,6 @@ class TestMain():
         "messaging_api_response, reply_message_text",
         test_cases_full_info
     )
-    # @patch('configparser.ConfigParser', side_effect=mock_configparser)
     @patch('main.ApiClient')
     @patch('main.line.lineFunction')
     @patch('main.accounting.accountingFunction')
