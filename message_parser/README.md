@@ -67,7 +67,7 @@
     - 更改項目
     - 更改數值
 - parameter type:
-    - Record_ID: string
+    - Record_ID: int
     - 更改項目: string
     - 更改數值: string
 - function interface
@@ -82,7 +82,7 @@
 - required parameter:
     - Record_ID
 - parameter type:
-    - Record_ID: string
+    - Record_ID: int
 - function interface
     ```python
     def delete_record(user_id, record_id)
@@ -94,12 +94,12 @@
 - pattern: [!匯出] [方法]
 - optional parameter:
     - 方法
-        - 本月
-        - 本年
-        - 全部
+        - 本月: 'this month'
+        - 本年: 'this year'
+        - 全部: 'all'
 - parameter type:
     - 方法: string
 - function interface
     ```python
-    def export_record(user_id, method='this_month')
+    def export_record(user_id, method='this month')
     ```
