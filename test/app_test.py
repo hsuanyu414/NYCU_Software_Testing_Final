@@ -22,7 +22,7 @@ class TestApp:
     def setup(self):
         """
         Clear database before testing
-        TODO: Set the database to test database
+        TODO: Set new database for each testing
         """
         conn = sqlite3.connect('../db.sqlite3')
         cursor = conn.cursor()
@@ -31,20 +31,20 @@ class TestApp:
         conn.commit()
         conn.close()
 
-    @pytest.mark.parametrize('test_case_name, user_id, message_text, expected_reply_message', [
-        ('create_record', 'test_user_1', '!記帳 20240520 Lunch 10 Food Comment', 'Record created successfully'),
-        ('show_recent_record', 'test_user_1', '!最近記帳 最近筆數 10', ['Recent Record:\n', 'date: 20240520\n', 'item: Lunch\n', \
+    @pytest.mark.parametrize('test_case_name, line_user_id, message_text, expected_reply_message', [
+        ('create_record', 'test_line_user_1', '!記帳 20240520 Lunch 10 Food Comment', 'Record created successfully'),
+        ('show_recent_record', 'test_line_user_1', '!最近記帳 最近筆數 10', ['Recent Record:\n', 'date: 20240520\n', 'item: Lunch\n', \
                                                             'cost: 10\n', 'category: Food\n', 'comment: Comment\n']),
-        ('search_record', 'test_user_1', '!查詢 20240101 20240531', ['Search Record:\n', 'date: 20240520\n', 'item: Lunch\n', \
+        ('search_record', 'test_line_user_1', '!查詢 20240101 20240531', ['Search Record:\n', 'date: 20240520\n', 'item: Lunch\n', \
                                                                    'cost: 10\n', 'category: Food\n', 'comment: Comment\n']),
-        ('update_record', '!修改記帳 12345678 日期 20240101 項目 lunch 金額 200 類別 food 備註 delicious', 'tetst_user_1', 'Record updated successfully'),
-        ('delete_record', '!刪除記帳 12345678', 'test_user_1', 'Record deleted successfully'),
-        ('export_record', '!匯出 本月', 'test_user_1', ['Export Record:\n'])
+        ('update_record', 'test_line_user_1', '!修改記帳 1 日期 20240101 項目 lunch 金額 200 類別 food 備註 delicious', 'Record updated successfully'),
+        ('delete_record', 'test_line_user_1', '!刪除記帳 1', 'Record deleted successfully'),
+        ('export_record', 'test_line_user_1', '!匯出 本月', ['Export Record:\n'])
     ])
     @patch('main.ApiClient')
     def test_handle_message_integration(
          self, mock_api_client,
-         test_case_name, user_id, message_text, expected_reply_message):
+         test_case_name, line_user_id, message_text, expected_reply_message):
         """
         Test the integration of the handle_message function,
         with real MessageParser, accountingFunction, lineFunction objects.
@@ -52,4 +52,21 @@ class TestApp:
         Give the handle_message fnuction a real message event object,
         and check if the reply message is correct.
         """
-        pass
+        reply_token_id = 'test_reply_token_id'
+        mock_event = mock_message_event(
+            reply_token = reply_token_id,
+            type = 'message',
+            source = mock_source(type='user', group_id=None, user_id=line_user_id),
+            message = mock_message(text=message_text)
+        )
+
+        with patch('main.MessagingApi') as mock_messaging_api:
+
+            returned_reply_message_request = handle_message(mock_event)
+
+            if 'show_recent_record' in test_case_name or 'search_record' in test_case_name or 'export_record' in test_case_name:
+                for expected_reply_message_part in expected_reply_message:
+                    assert expected_reply_message_part in returned_reply_message_request.messages[0].text
+            else:
+                assert returned_reply_message_request.messages[0].text == \
+                    expected_reply_message
