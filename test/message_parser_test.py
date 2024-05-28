@@ -19,9 +19,9 @@ class TestMessageParser():
         ('!最近記帳 最近筆數 10'                         , ['show_recent_record', 10, 'num']),
         ('!查詢 20240101 20240102'                      , ['search_record', '20240101', '20240102']),
         ('!修改記帳 12345678 日期 20240101 項目 lunch 金額 200 類別 food 備註 delicious'  \
-                                                        , ['update_record', '12345678', '20240101', 'lunch', 200, 'food', 'delicious']),
-        ('!刪除記帳 12345678'                           , ['delete_record', '12345678']),
-        ('!匯出 本月'                                   , ['export_record', 'this_month'])
+                                                        , ['update_record', 12345678, '20240101', 'lunch', 200, 'food', 'delicious']),
+        ('!刪除記帳 12345678'                           , ['delete_record', 12345678]),
+        ('!匯出 本月'                                   , ['export_record', 'this month'])
     ])
     def test_message_parser_full_info(self, test_message, expected):
         """
@@ -40,7 +40,7 @@ class TestMessageParser():
         ('!最近記帳 最近天數'                            , ['show_recent_record', 'day']),
         ('!最近記帳 10'                                 , ['show_recent_record', 10]),
         ('!查詢 20240101'                               , ['search_record', '20240101']),
-        ('!匯出'                                        , ['export_record', 'this_month'])
+        ('!匯出'                                        , ['export_record', 'this month'])
     ])
     def test_message_parser_optional_info(self, test_message, expected):
         """

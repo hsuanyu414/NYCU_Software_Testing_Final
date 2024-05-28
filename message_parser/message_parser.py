@@ -16,9 +16,9 @@ class MessageParser:
             'create_record': r'^!記帳\s+(\d{8})\s+(\w+)\s+(\d+)\s+(\w+)\s+(.*)$',
             'show_recent_record': r'^!最近記帳(?:\s+(?P<method>最近筆數|最近天數))?(?:\s+(?P<value>\d+))?$',
             'search_record': r'^!查詢 (?P<date_from>\d{8})(?:\s+(?P<date_to>\d{8})?)?$',
-            'update_record': r'^!修改記帳 (?P<record_id>\w+)(?:\s+(?P<key>日期|項目|金額(?=\s+\d+)|類別|備註) (?P<value>\w+))*$',
+            'update_record': r'^!修改記帳 (?P<record_id>\d+)(?:\s+(?P<key>日期|項目|金額(?=\s+\d+)|類別|備註) (?P<value>\w+))*$',
             'update_record_key_value': r'(?P<key>日期|項目|金額(?=\s+\d+)|類別|備註) (?P<value>\w+)',
-            'delete_record': r'^!刪除記帳 (?P<record_id>\w+)$',
+            'delete_record': r'^!刪除記帳 (?P<record_id>\d+)$',
             'export_record': r'^!匯出(?:\s+(本月|本年|全部))?$'
         }
 
@@ -28,8 +28,8 @@ class MessageParser:
         }
 
         self.export_method_map = {
-            '本月': 'this_month',
-            '本年': 'this_year',
+            '本月': 'this month',
+            '本年': 'this year',
             '全部': 'all'
         }
 
@@ -113,7 +113,7 @@ class MessageParser:
         elif command == 'update_record':
             match = re.match(self.command_pattern[command], user_message)
             if match:
-                record_id = match.group('record_id')
+                record_id = int(match.group('record_id'))
                 pairs = [(m.group('key'), m.group('value')) for m in re.finditer(self.command_pattern[command+"_key_value"], user_message)]
                 print(pairs)
                 date = item = cost = category = comment = None
@@ -135,7 +135,7 @@ class MessageParser:
         elif command == 'delete_record':
             match = re.match(self.command_pattern[command], user_message)
             if match:
-                record_id = match.group('record_id')
+                record_id = int(match.group('record_id'))
                 param_list = [command, record_id]
                 success = True
             else:
