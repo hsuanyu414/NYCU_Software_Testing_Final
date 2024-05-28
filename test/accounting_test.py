@@ -252,10 +252,10 @@ class TestSearchRecord:
         assert error_message == 'user_id does not exist'
 
 class TestUpdateRecord:
-    @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
-        (   2 , 1, 'apple',  20 , 'food', 'good_to_eat', 'the record of this id does not exist')
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected", [
+        (   1 , 1, '20240101', 'apple',  20 , 'food', 'good_to_eat', 'the record of this id does not exist')
     ])
-    def test_update_user_record_id_is_exist( self, test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected, mocker):
+    def test_update_user_record_id_is_exist( self, test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected, mocker):
         #Arrange
         mock_obj = mock_db_conn()
         mock_obj.Cursor.lastrowid = 1
@@ -266,21 +266,22 @@ class TestUpdateRecord:
         module = accounting.accountingFunction()
 
         #Act
-        success, record, error_message = module.update_record(test_user_id, test_record_id, test_item, test_cost, test_category, test_comment)
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment)
 
         assert not success
         assert record == None
         assert error_message == expected
     
-    @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
-        (  '1', 1, 'apple',  20 , 'food', 'good_to_eat', 'invalid user_id parameter'),
-        (1, '1', 'apple',  20 , 'food', 'good_to_eat', 'invalid record_id parameter'),
-        (1, 1, 20, 20, 'food', 'good_to_eat', 'invalid item parameter'),
-        (1, 1, 'apple', '20', 'food', 'good_to_eat', 'invalid cost parameter'),
-        (1, 1, 'apple',  20 ,   123 , 'good_to_eat', 'invalid category parameter'),
-        (1, 1, 'apple',  20 , 'food',          123 , 'invalid comment parameter')
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected", [
+        ('1', 1, '20240101', 'apple',  20 , 'food', 'good_to_eat', 'invalid user_id parameter'),
+        (1, '1','20240101', 'apple',  20 , 'food', 'good_to_eat', 'invalid record_id parameter'),
+        (1, 1,  20240101 , 'apple',  20 , 'food', 'good_to_eat', 'invalid date parameter'),
+        (1, 1, '20240101', 20, 20, 'food', 'good_to_eat', 'invalid item parameter'),
+        (1, 1, '20240101', 'apple', '20', 'food', 'good_to_eat', 'invalid cost parameter'),
+        (1, 1, '20240101', 'apple',  20 ,   123 , 'good_to_eat', 'invalid category parameter'),
+        (1, 1, '20240101', 'apple',  20 , 'food',          123 , 'invalid comment parameter')
     ])
-    def test_update_user_record_invalid_parameter( self, test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected, mocker):
+    def test_update_user_record_invalid_parameter( self, test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected, mocker):
         #Arrange
         mock_obj = mock_db_conn()
         mock_obj.Cursor.lastrowid = 1
@@ -291,15 +292,15 @@ class TestUpdateRecord:
         module = accounting.accountingFunction()
 
         #Act
-        success, record, error_message = module.update_record(test_user_id, test_record_id, test_item, test_cost, test_category, test_comment)
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment)
 
         assert not success
         assert record == None
         assert error_message == expected
-    @pytest.mark.parametrize("test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected", [
-        (   1 , 1, 'apple',  20 , 'food', 'good_to_eat', Record.Record(1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101') )
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected", [
+        (   1 , 1,'20240101', 'apple',  20 , 'food', 'good_to_eat', Record.Record(1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101') )
     ])
-    def test_update_success( self, test_user_id, test_record_id, test_item, test_cost, test_category, test_comment, expected, mocker):
+    def test_update_success( self, test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected, mocker):
         #Arrange
         mock_obj = mock_db_conn()
         mock_obj.Cursor.lastrowid = 1
@@ -309,7 +310,7 @@ class TestUpdateRecord:
         module = accounting.accountingFunction()
 
         #Act
-        success, record, error_message = module.update_record(test_user_id, test_record_id, test_item, test_cost, test_category, test_comment)
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment)
         assert success == True
         assert record.user_id == expected.user_id
         assert record.date == expected.date

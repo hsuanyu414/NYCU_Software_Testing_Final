@@ -172,7 +172,7 @@ class accountingFunction:
         success = True
 
         return success, records, error_message
-    def update_record(self, user_id, record_id, item=None, cost=None, category=None, comment=None):
+    def update_record(self, user_id, record_id, date=None, item=None, cost=None, category=None, comment=None):
         success = False
         record = None
         error_message = None
@@ -207,19 +207,23 @@ class accountingFunction:
             error_message = 'invalid comment parameter'
             return success, record, error_message
 
+        # check if date is valid
+        if date != None and not isinstance(date, str):
+            error_message = 'invalid date parameter'
+            return success, record, error_message
         # DB related
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
 
         # check if user_id exists
-        cursor.execute('SELECT * FROM user WHERE user_id = ? AND record_id = ?', (user_id, record_id))
+        cursor.execute('SELECT * FROM record WHERE user_id = ? AND record_id = ?', (user_id, record_id))
         row = cursor.fetchone()
         if row == None:
             error_message = 'the record of this id does not exist'
             return success, record, error_message
         #update record
         try:
-            cursor.execute('UPDATE record SET item = COALESCE(?, item), cost = COALESCE(?, cost), category = COALESCE(?, category), comment = COALESCE(?, comment) WHERE user_id = ? AND record_id = ?', (item, cost, category, comment, user_id, record_id))
+            cursor.execute('UPDATE record SET item = COALESCE(?, item), cost = COALESCE(?, cost), category = COALESCE(?, category), comment = COALESCE(?, comment), date = COALESCE(?, date) WHERE user_id = ? AND record_id = ?', (item, cost, category, comment, date, user_id, record_id))
             conn.commit()
             cursor.execute('SELECT * FROM record WHERE user_id = ? AND record_id = ?', (user_id, record_id))
             row = cursor.fetchone()
@@ -252,7 +256,7 @@ class accountingFunction:
         cursor = conn.cursor()
 
         # check if the record of the user_id exists
-        cursor.execute('SELECT * FROM user WHERE user_id = ? AND record_id = ?', (user_id, record_id))
+        cursor.execute('SELECT * FROM record WHERE user_id = ? AND record_id = ?', (user_id, record_id))
         row = cursor.fetchone()
         if row == None:
             error_message = 'the record of this id does not exist'
