@@ -212,7 +212,7 @@ class accountingFunction:
         cursor = conn.cursor()
 
         # check if user_id exists
-        cursor.execute('SELECT * FROM user WHERE user_id = ? AND record_id = ?', (user_id, record_id))
+        cursor.execute('SELECT * FROM record WHERE user_id = ? AND record_id = ?', (user_id, record_id))
         row = cursor.fetchone()
         if row == None:
             error_message = 'the record of this id does not exist'
@@ -252,7 +252,7 @@ class accountingFunction:
         cursor = conn.cursor()
 
         # check if the record of the user_id exists
-        cursor.execute('SELECT * FROM user WHERE user_id = ? AND record_id = ?', (user_id, record_id))
+        cursor.execute('SELECT * FROM record WHERE user_id = ? AND record_id = ?', (user_id, record_id))
         row = cursor.fetchone()
         if row == None:
             error_message = 'the record of this id does not exist'
