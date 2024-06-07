@@ -52,7 +52,7 @@ def callback():
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
-def handle_message(event, db_name):
+def handle_message(event, db_name = '../db.sqlite3'):
     """
     Handle user message and reply
         handle the following commands:
