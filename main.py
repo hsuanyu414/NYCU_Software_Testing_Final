@@ -75,7 +75,7 @@ def handle_message(event):
         my_line = line.lineFunction()
         line_success, line_user, line_error_message = my_line.create_line_user(event.source.user_id)
         if not line_success and line_error_message == 'line_id already exists':
-            line_success, line_user, line_error_message = my_line.get_line_user(event.source.user_id)
+            line_success, line_user, line_error_message = my_line.get_user_by_line_id(event.source.user_id)
         if not line_success:
             reply_message = "Create Line User error: " + line_error_message
             line_bot_api.reply_message_with_http_info(
