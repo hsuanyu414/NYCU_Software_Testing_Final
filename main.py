@@ -52,7 +52,7 @@ def callback():
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
+def handle_message(event, db_name):
     """
     Handle user message and reply
         handle the following commands:
@@ -72,7 +72,7 @@ def handle_message(event):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
 
-        my_line = line.lineFunction()
+        my_line = line.lineFunction(db_name)
         line_success, line_user, line_error_message = my_line.create_line_user(event.source.user_id)
         if not line_success and line_error_message == 'line_id already exists':
             line_success, line_user, line_error_message = my_line.get_user_by_line_id(event.source.user_id)
@@ -105,8 +105,8 @@ def handle_message(event):
             line_bot_api.reply_message_with_http_info(reply_message_request)
             return reply_message_request
         else:
-            my_line = line.lineFunction()
-            my_accounting = accounting.accountingFunction()
+            my_line = line.lineFunction(db_name)
+            my_accounting = accounting.accountingFunction(db_name)
             
             command = parser_param_list[0]
 
