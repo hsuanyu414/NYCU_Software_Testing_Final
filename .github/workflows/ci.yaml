@@ -18,4 +18,7 @@ jobs:
         run: |
           cd test
           pytest . -v
-  
+      - name: python format check
+        uses: AlexanderMelde/yapf-action@master
+        with: 
+          args: --style pep8 --verbose
