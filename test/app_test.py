@@ -1,5 +1,6 @@
 import sqlite3
 import pytest
+import os
 
 from unittest.mock import patch
 from linebot import WebhookHandler
@@ -19,17 +20,27 @@ from models import Record, User
 class TestApp:
 
     @pytest.fixture(autouse = True, scope='class')
-    def setup(self):
+    def setup(self, request):
         """
-        Clear database before testing
-        TODO: Set new database for each testing
+        Create a temporary database before testing
+        and remove it after testing
         """
-        conn = sqlite3.connect('../db.sqlite3')
+        # Create a temporary database file in the temporary directory
+        db_file = os.path.join('../', 'test_db.sqlite3')
+        conn = sqlite3.connect(db_file)
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM record')
-        cursor.execute('DELETE FROM user')
+        cursor.execute('CREATE TABLE record (user_id INTEGER, record_id INTEGER PRIMARY KEY, date TEXT, item TEXT, cost INTEGER, category TEXT, comment TEXT, create_date DATE)')
+        cursor.execute('CREATE TABLE user (user_id INTEGER PRIMARY KEY, line_id TEXT, create_date DATE)')
         conn.commit()
         conn.close()
+
+        # Set the db_file attribute in the test class instance
+        request.cls.db_file = db_file
+
+        yield
+
+        # remove the temporary database file
+        os.remove(self.db_file)
 
     @pytest.mark.parametrize('test_case_name, line_user_id, message_text, expected_reply_message', [
         ('create_record', 'test_line_user_1', '!記帳 20240520 Lunch 10 Food Comment', 'Record created successfully'),
@@ -62,7 +73,7 @@ class TestApp:
 
         with patch('main.MessagingApi') as mock_messaging_api:
 
-            returned_reply_message_request = handle_message(mock_event)
+            returned_reply_message_request = handle_message(mock_event, self.db_file)
 
             if 'show_recent_record' in test_case_name or 'search_record' in test_case_name or 'export_record' in test_case_name:
                 for expected_reply_message_part in expected_reply_message:
