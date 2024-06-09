@@ -2,10 +2,9 @@ import sqlite3
 
 
 def init_db(db_name='db.sqlite3'):
-
     """
     Initialize database with tables
-    
+
     user 
     - user_id (primary key) autoincrement
     - line_id (unique)
@@ -49,6 +48,7 @@ def init_db(db_name='db.sqlite3'):
 
     conn.commit()
     conn.close()
+
 
 if __name__ == '__main__':
     init_db()
