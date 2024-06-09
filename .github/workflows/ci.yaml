@@ -31,4 +31,6 @@ jobs:
         run: |
           cd test
           pytest . -v
+      - name: push changes
+        run: git push
       
