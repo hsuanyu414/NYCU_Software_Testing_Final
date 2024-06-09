@@ -33,6 +33,6 @@ jobs:
           pytest . -v
       - name: check for changes
         run: git diff --exit-code
-      - name: push changes
+      - name: push changesgi
         run: git push
       
