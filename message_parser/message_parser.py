@@ -1,6 +1,7 @@
 import re
 import datetime
 
+
 class MessageParser:
     def __init__(self):
         self.command_map = {
@@ -56,7 +57,7 @@ class MessageParser:
         elif user_message == '':
             error_message = 'empty message'
             return success, param_list, error_message
-        
+
         """
         Split the message by space and check if the command is valid
         """
@@ -65,7 +66,7 @@ class MessageParser:
         if message_command not in self.command_map:
             error_message = 'invalid command'
             return success, param_list, error_message
-        
+
         """
         Handle different commands
         """
@@ -90,11 +91,13 @@ class MessageParser:
                 if method is None and value is None:
                     param_list = [command]
                 elif method is not None and value is None:
-                    param_list = [command, self.show_recent_record_type_map[method]]
+                    param_list = [
+                        command, self.show_recent_record_type_map[method]]
                 elif method is None and value is not None:
                     param_list = [command, int(value)]
                 elif method is not None and value is not None:
-                    param_list = [command, int(value), self.show_recent_record_type_map[method]]
+                    param_list = [command, int(
+                        value), self.show_recent_record_type_map[method]]
                 success = True
             else:
                 error_message = 'invalid pattern'
@@ -114,7 +117,8 @@ class MessageParser:
             match = re.match(self.command_pattern[command], user_message)
             if match:
                 record_id = match.group('record_id')
-                pairs = [(m.group('key'), m.group('value')) for m in re.finditer(self.command_pattern[command+"_key_value"], user_message)]
+                pairs = [(m.group('key'), m.group('value')) for m in re.finditer(
+                    self.command_pattern[command+"_key_value"], user_message)]
                 print(pairs)
                 date = item = cost = category = comment = None
                 for key, value in pairs:
@@ -128,7 +132,8 @@ class MessageParser:
                         category = value
                     elif key == '備註':
                         comment = value
-                param_list = [command, record_id, date, item, cost, category, comment]
+                param_list = [command, record_id, date,
+                              item, cost, category, comment]
                 success = True
             else:
                 error_message = 'invalid pattern'
