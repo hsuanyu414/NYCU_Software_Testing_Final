@@ -18,4 +18,16 @@ jobs:
         run: |
           cd test
           pytest . -v
-  
+      - name: autoformatter
+        run: pip install autopep8
+      - name: autopep8
+        run: autopep8 --in-place --recursive .
+      - name: add commit
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          git add .
+          git commit -m "autopep8"
+      - name: push commit
+        run: git push
+      
