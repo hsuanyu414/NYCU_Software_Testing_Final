@@ -20,7 +20,7 @@ jobs:
       - name: autoformatter
         run: pip install autopep8
       - name: autopep8
-        run: autopep8 --in-place --recursive .
+        run: autopep8 --in-place --recursive . --exclude "*_test.py"
       - name: add commit
         run: |
           git config --global user.name 'GitHub Actions Bot'
@@ -31,8 +31,4 @@ jobs:
         run: |
           cd test
           pytest . -v
-      - name: push commit
-        run: git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
