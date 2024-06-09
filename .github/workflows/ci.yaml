@@ -20,7 +20,7 @@ jobs:
       - name: autoformatter
         run: pip install autopep8
       - name: autopep8
-        run: autopep8 --in-place --recursive . --exclude ./test/*
+        run: autopep8 --in-place --recursive . --exclude ./test
       - name: add commit
         run: |
           git config --global user.name 'GitHub Actions Bot'
