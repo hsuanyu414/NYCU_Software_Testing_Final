@@ -153,7 +153,5 @@ class MessageParser:
                 success = True
             else:
                 error_message = 'invalid pattern'
-        else:
-            error_message = 'invalid command'
 
         return success, param_list, error_message
