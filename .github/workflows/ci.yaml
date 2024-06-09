@@ -30,4 +30,6 @@ jobs:
           git commit -m "autopep8"
       - name: push commit
         run: git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
