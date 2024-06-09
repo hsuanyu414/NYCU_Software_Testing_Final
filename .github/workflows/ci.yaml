@@ -1,5 +1,8 @@
 name: CI
 on: [push, pull_request]
+
+permissions:
+  contents: write
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,8 +17,20 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: autoformatter
+        run: pip install autopep8
+      - name: autopep8
+        run: autopep8 --in-place --recursive . --exclude ./test/
+      - name: add commit
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          git add .
+          git diff --quiet && git diff --staged --quiet || git commit -m "autopep8"
       - name: run tests
         run: |
           cd test
           pytest . -v
+      - name: push changesgi
+        run: git push
   
