@@ -499,13 +499,14 @@ Source Code:
             - mock 資料庫使 fetchone() 回傳 User 資料為非 None，且 Record 資料有 3 筆，且當中有 3 筆符合條件
             - Expected: success = True, len(records) = 3
     - CC:
-        - T t f
-            - search_record(1, '20240101', 20240103)
-            - Expected: error_message = 'invalid date_to parameter'
-        - F f t
+        - F t t
             - search_record(1, '20240101', '20240103')
-            - mock 資料庫使 fetchone() 回傳 User 資料為非 None，且 Record 資料有 3 筆，，且當中有 3 筆符合條件
+            - mock 資料庫使 fetchone() 回傳 User 資料為非 None，且 Record 資料有 3 筆
             - Expected: success = True, len(records) = 3
+        - F f f
+            - search_record(1, '20240101', None)
+            - mock 資料庫使 fetchone() 回傳 User 資料為非 None，且 Record 資料有 3 筆，但僅有 1 筆符合條件
+            - Expected: success = True, len(records) = 1
     - CACC:
         - A as major
             - T t f 
