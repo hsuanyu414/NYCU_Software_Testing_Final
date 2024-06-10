@@ -117,7 +117,8 @@ class MessageParser:
             match = re.match(self.command_pattern[command], user_message)
             if match:
                 record_id = int(match.group('record_id'))
-                pairs = [(m.group('key'), m.group('value')) for m in re.finditer(self.command_pattern[command+"_key_value"], user_message)]
+                pairs = [(m.group('key'), m.group('value')) for m in re.finditer(
+                    self.command_pattern[command+"_key_value"], user_message)]
                 date = item = cost = category = comment = None
                 for key, value in pairs:
                     if key == '日期':

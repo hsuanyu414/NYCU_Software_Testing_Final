@@ -6,7 +6,7 @@ sys.path.append('..')
 
 
 class lineFunction:
-    def __init__(self, db_name = "../db.sqlite3"):
+    def __init__(self, db_name="../db.sqlite3"):
         self.db_name = db_name
 
     def create_line_user(self, line_id):

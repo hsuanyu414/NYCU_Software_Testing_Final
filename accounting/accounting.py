@@ -8,9 +8,9 @@ sys.path.append('..')
 
 
 class accountingFunction:
-    def __init__(self, db_name = '../db.sqlite3'):
+    def __init__(self, db_name='../db.sqlite3'):
         self.db_name = db_name
-      
+
     def create_record(self, user_id, date, item, cost, category, comment):
         success = False
         record = None
