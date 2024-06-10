@@ -29,7 +29,8 @@ app = Flask(__name__)
 config = configparser.ConfigParser()
 config.read('./config.ini')
 
-configuration = Configuration(access_token = config.get('line-bot', 'channel_access_token'))
+configuration = Configuration(
+    access_token=config.get('line-bot', 'channel_access_token'))
 handler = WebhookHandler(config.get('line-bot', 'channel_secret'))
 
 
@@ -46,10 +47,12 @@ def callback():
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
-        app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
+        app.logger.info(
+            "Invalid signature. Please check your channel access token/channel secret.")
         abort(400)
 
     return 'OK'
+
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event, db_name = '../db.sqlite3'):
@@ -71,7 +74,6 @@ def handle_message(event, db_name = '../db.sqlite3'):
     """
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
-
                 
         # check if user_id can be seen as utf-8
         try:
@@ -84,6 +86,7 @@ def handle_message(event, db_name = '../db.sqlite3'):
         line_success, line_user, line_error_message = my_line.create_line_user(event.source.user_id)
         if not line_success and line_error_message == 'line_id already exists':
             line_success, line_user, line_error_message = my_line.get_user_by_line_id(event.source.user_id)
+
         if not line_success:
             reply_message = "Create Line User error: " + line_error_message
             reply_message_request = ReplyMessageRequest(
@@ -92,9 +95,9 @@ def handle_message(event, db_name = '../db.sqlite3'):
             )
             line_bot_api.reply_message_with_http_info(reply_message_request)
             return reply_message_request
-        
+
         user_id = line_user.user_id
-        
+
         """
         Get and parse the user input message
         """
@@ -103,7 +106,8 @@ def handle_message(event, db_name = '../db.sqlite3'):
 
         reply_message = None
 
-        parser_success, parser_param_list, parser_error_message = my_parser.parse(user_message)
+        parser_success, parser_param_list, parser_error_message = my_parser.parse(
+            user_message)
         if not parser_success:
             reply_message = "Parse error: " + parser_error_message
             reply_message_request = ReplyMessageRequest(
@@ -115,7 +119,7 @@ def handle_message(event, db_name = '../db.sqlite3'):
         else:
             my_line = line.lineFunction(db_name)
             my_accounting = accounting.accountingFunction(db_name)
-            
+
             command = parser_param_list[0]
 
             """
@@ -131,9 +135,9 @@ def handle_message(event, db_name = '../db.sqlite3'):
                     - error_message: string
                 """
                 accounting_success, accounting_record, accounting_error_message = \
-                    my_accounting.create_record(user_id = user_id, date = parser_param_list[1], \
-                                                item = parser_param_list[2], cost = parser_param_list[3], \
-                                                category = parser_param_list[4], comment = parser_param_list[5])
+                    my_accounting.create_record(user_id=user_id, date=parser_param_list[1],
+                                                item=parser_param_list[2], cost=parser_param_list[3],
+                                                category=parser_param_list[4], comment=parser_param_list[5])
                 if accounting_success:
                     reply_message = "Record created successfully"
                 else:
@@ -150,22 +154,26 @@ def handle_message(event, db_name = '../db.sqlite3'):
                 """
                 if len(parser_param_list) == 1:
                     accounting_success, accounting_records, accounting_error_message = \
-                        my_accounting.show_recent_record(user_id = user_id)
+                        my_accounting.show_recent_record(user_id=user_id)
                 elif len(parser_param_list) == 2:
                     if isinstance(parser_param_list[1], int):
                         accounting_success, accounting_records, accounting_error_message = \
-                            my_accounting.show_recent_record(user_id = user_id, num = parser_param_list[1])
+                            my_accounting.show_recent_record(
+                                user_id=user_id, num=parser_param_list[1])
                     elif isinstance(parser_param_list[1], str):
                         accounting_success, accounting_records, accounting_error_message = \
-                            my_accounting.show_recent_record(user_id = user_id, type = parser_param_list[1])
+                            my_accounting.show_recent_record(
+                                user_id=user_id, type=parser_param_list[1])
                 elif len(parser_param_list) == 3:
                     if parser_param_list[2] == 'num':
                         accounting_success, accounting_records, accounting_error_message = \
-                            my_accounting.show_recent_record(user_id = user_id, num = parser_param_list[1], type = parser_param_list[2])
+                            my_accounting.show_recent_record(
+                                user_id=user_id, num=parser_param_list[1], type=parser_param_list[2])
                     elif parser_param_list[2] == 'day':
                         accounting_success, accounting_records, accounting_error_message = \
-                            my_accounting.show_recent_record(user_id = user_id, days = parser_param_list[1], type = parser_param_list[2])
-                
+                            my_accounting.show_recent_record(
+                                user_id=user_id, days=parser_param_list[1], type=parser_param_list[2])
+
                 if accounting_success:
                     reply_message = "Recent Record:\n"
                     for record in accounting_records:
@@ -184,10 +192,12 @@ def handle_message(event, db_name = '../db.sqlite3'):
                 """
                 if len(parser_param_list) == 2:
                     accounting_success, accounting_records, accounting_error_message = \
-                        my_accounting.search_record(user_id = user_id, date_from = parser_param_list[1])
+                        my_accounting.search_record(
+                            user_id=user_id, date_from=parser_param_list[1])
                 elif len(parser_param_list) == 3:
                     accounting_success, accounting_records, accounting_error_message = \
-                        my_accounting.search_record(user_id = user_id, date_from = parser_param_list[1], date_to = parser_param_list[2])
+                        my_accounting.search_record(
+                            user_id=user_id, date_from=parser_param_list[1], date_to=parser_param_list[2])
 
                 if accounting_success:
                     reply_message = "Search Record:\n"
@@ -206,10 +216,10 @@ def handle_message(event, db_name = '../db.sqlite3'):
                     - error_message: string
                 """
                 accounting_success, accounting_record, accounting_error_message = \
-                    my_accounting.update_record(user_id = user_id, record_id = parser_param_list[1], \
-                                                date = parser_param_list[2], item = parser_param_list[3], \
-                                                cost = parser_param_list[4], category = parser_param_list[5], \
-                                                comment = parser_param_list[6])
+                    my_accounting.update_record(user_id=user_id, record_id=parser_param_list[1],
+                                                date=parser_param_list[2], item=parser_param_list[3],
+                                                cost=parser_param_list[4], category=parser_param_list[5],
+                                                comment=parser_param_list[6])
                 if accounting_success:
                     reply_message = "Record updated successfully"
                 else:
@@ -224,7 +234,8 @@ def handle_message(event, db_name = '../db.sqlite3'):
                     - error_message: string
                 """
                 accounting_success, _, accounting_error_message = \
-                    my_accounting.delete_record(user_id = user_id, record_id = parser_param_list[1])
+                    my_accounting.delete_record(
+                        user_id=user_id, record_id=parser_param_list[1])
                 if accounting_success:
                     reply_message = "Record deleted successfully"
                 else:
@@ -241,10 +252,11 @@ def handle_message(event, db_name = '../db.sqlite3'):
                 """
                 if len(parser_param_list) == 1:
                     accounting_success, accounting_link, accounting_error_message = \
-                        my_accounting.export_record(user_id = user_id)
+                        my_accounting.export_record(user_id=user_id)
                 elif len(parser_param_list) == 2:
                     accounting_success, accounting_link, accounting_error_message = \
-                        my_accounting.export_record(user_id = user_id, method = parser_param_list[1])
+                        my_accounting.export_record(
+                            user_id=user_id, method=parser_param_list[1])
                 if accounting_success:
                     reply_message = "Export Record:\n" + accounting_link
                 else:
@@ -260,6 +272,7 @@ def handle_message(event, db_name = '../db.sqlite3'):
             line_bot_api.reply_message_with_http_info(reply_message_request)
 
             return reply_message_request
+
 
 if __name__ == "__main__":
     app.run(port=8081, debug=True)

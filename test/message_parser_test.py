@@ -68,6 +68,8 @@ class TestMessageParser():
         ('!刪除記帳'                                                         , 'invalid pattern'),
         ('!刪除記帳 12345678 dummy_info'                                     , 'invalid pattern'),
         ('!匯出 本月 dummy_info'                                             , 'invalid pattern'),
+        (123                                                                , 'wrong type'),
+        (''                                                                 , 'empty message')
     ])
     def test_message_parser_invalid_pattern(self, test_message, expected):
         """
