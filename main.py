@@ -72,6 +72,14 @@ def handle_message(event, db_name = '../db.sqlite3'):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
 
+                
+        # check if user_id can be seen as utf-8
+        try:
+            event.source.user_id.encode('utf-8')
+            event.message.text.encode('utf-8')
+        except UnicodeEncodeError as unicode_encode_error:
+            raise unicode_encode_error
+        
         my_line = line.lineFunction(db_name)
         line_success, line_user, line_error_message = my_line.create_line_user(event.source.user_id)
         if not line_success and line_error_message == 'line_id already exists':
