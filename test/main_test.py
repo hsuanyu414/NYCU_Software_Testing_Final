@@ -342,6 +342,22 @@ test_cases_fail = [
         None,
         None,
         'Invalid command'
+    ),
+    (
+        'utf-8 error',
+        'test_reply_token_id',
+        "\udcc3\udcbc",
+        True,
+        ['invalid_command'],
+        None,
+        None,
+        None,
+        None,
+        True,
+        mock_source(type='user', group_id=None, user_id='1'),
+        None,
+        None,
+        'UnicodeEncodeError'
     )
 ]
 
@@ -677,7 +693,13 @@ class TestMain():
             mock_messaging_api_instance = mock_messaging_api.return_value
             mock_messaging_api_instance.reply_message_with_http_info.return_value = messaging_api_response
 
-            handle_message(mock_event)
+            if test_case_name == 'utf-8 error':
+                with pytest.raises(Exception) as e:
+                    handle_message(mock_event)
+                assert e.type.__name__ == reply_message_text
+                return
+            else:
+                handle_message(mock_event)
 
             if test_case_name != 'line_id exist':
                 mock_line_instance.create_line_user.assert_called_once_with('1')
