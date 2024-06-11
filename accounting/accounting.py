@@ -316,10 +316,10 @@ class accountingFunction:
             error_message = 'user_id does not exist'
             return success, link, error_message
 
-        if method == 'this_month':
+        if method == 'this month':
             cursor.execute(
                 'SELECT * FROM record WHERE user_id = ? AND date >= date("now", "start of month")', (user_id,))
-        elif method == 'this_year':
+        elif method == 'this year':
             cursor.execute(
                 'SELECT * FROM record WHERE user_id = ? AND date >= date("now", "start of year")', (user_id,))
         elif method == 'all':

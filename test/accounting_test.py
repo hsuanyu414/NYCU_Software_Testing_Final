@@ -343,7 +343,30 @@ class TestUpdateRecord:
 
         #Assert
         assert error_message != None
+    @pytest.mark.parametrize("test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected", [
+        (   1 , 1,'20240101', 'apple',  20 , 'food', 'good_to_eat', 'Error while updating record' )
+    ])
+    def test_update_exception( self, test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results[0]
+        exec_count = 0
+        def raiseExceptionsWhileSecondExecute(*args):
+            nonlocal exec_count
+            exec_count += 1
+            if exec_count == 2:
+                raise sqlite3.Error('Error while updating record')
+        mock_obj.Cursor.execute = raiseExceptionsWhileSecondExecute
 
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, record, error_message = module.update_record(test_user_id, test_record_id, test_date, test_item, test_cost, test_category, test_comment)
+        assert success == False
+        assert error_message == expected
 class TestDeleteRecord:
     @pytest.mark.parametrize("test_user_id, test_record_id, expected", [
         (   2 , 1, 'the record of this id does not exist')
@@ -399,7 +422,30 @@ class TestDeleteRecord:
         success, _, error_message = module.delete_record(test_user_id, test_record_id)
         assert success == True
         assert error_message == None
+    @pytest.mark.parametrize("test_user_id, test_record_id, expected", [
+        (   1 , 1, 'Error while deleting record' )
+    ])
+    def test_delete_exception( self, test_user_id, test_record_id, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ (1, 1, '20240101', 'apple', 20, 'food', 'good_to_eat', '20240101')]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results[0]
+        exec_count = 0
+        def raiseExceptionsWhileSecondExecute(*args):
+            nonlocal exec_count
+            exec_count += 1
+            if exec_count == 2:
+                raise sqlite3.Error('Error while deleting record')
+        mock_obj.Cursor.execute = raiseExceptionsWhileSecondExecute
 
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        module = accounting.accountingFunction()
+
+        #Act
+        success, _, error_message = module.delete_record(test_user_id, test_record_id)
+        assert success == False
+        assert error_message == expected
 class TestRecordExport:
     @pytest.mark.parametrize("test_user_id, test_method, expected", [
         (   2 , 'this month', 'user_id does not exist')
@@ -441,7 +487,9 @@ class TestRecordExport:
         assert error_message == expected
         assert link == None
     @pytest.mark.parametrize("test_user_id, test_method, expected", [
-        (   1 , 'this month', 'export success' )
+        (   1 , 'this month', 'export success' ),
+        (1, 'this year', 'export success'),
+        (1, 'all', 'export success')
     ])
     def test_export_success( self, test_user_id, test_method, expected, mocker):
         #Arrange
@@ -470,3 +518,32 @@ class TestRecordExport:
         assert error_message == None
         assert link != None
         assert link != ''
+    @pytest.mark.parametrize("test_user_id, test_method, expected", [
+        (   1 , 'this month', 'export false' )
+    ])
+    def test_export_false( self, test_user_id, test_method, expected, mocker):
+        #Arrange
+        mock_obj = mock_db_conn()
+        mock_obj.Cursor.lastrowid = 1
+        mock_obj.Cursor.fetchone_results = [ User.User() ]
+        mock_obj.Cursor.fetchone = lambda: mock_obj.Cursor.fetchone_results.pop(0)
+        mock_obj.Cursor.fetchall_results = [
+            (1, 1, 20240103, 'coconut', 40, 'food', 'good_to_eat', '20240103')
+        ]
+        mock_obj.Cursor.fetchall = lambda: mock_obj.Cursor.fetchall_results
+        mocker.patch.object(sqlite3, 'connect', return_value=mock_obj)
+        open = mocker.mock_open()
+        mocker.patch('builtins.open', open)
+        mock_upload_response = {
+            'success': False,
+            'link': ''
+        }
+        mocker.patch.object(Fileio, 'upload', return_value=mock_upload_response)
+        # mock os.remove
+        mocker.patch('os.remove', return_value=None)
+        module = accounting.accountingFunction()
+        #Act
+        success, link, error_message = module.export_record(test_user_id, test_method)
+        assert success == False
+        assert error_message == 'upload failed'
+        assert link == ''
