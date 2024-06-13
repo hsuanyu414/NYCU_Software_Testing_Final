@@ -6,6 +6,38 @@
 * 312551080	紀軒宇
 * 312553008	陳沛圻
 
+## Spec
+
+### Line module
+
+```python
+def create_line_user(user_id, line_id)
+def get_user_by_line_id(line_id)
+```
+
+### Account module
+
+```python
+def create_record(user_id, date, item, cost, category, comment)
+def show_recent_record(user_id, num=5, days=3, type='num')
+def search_record(user_id, date_from, date_to=None)
+def update_record(user_id, record_id, date = None, item=None, cost=None, category=None, comment=None)
+def delete_record(user_id, record_id)
+def export_record(user_id, method='this_month')
+```
+
+### Message parser module
+
+```python
+def parse_message(message)
+```
+
+### Main module
+
+```python
+def handle_message(event)
+```
+
 ## Note
 
 * 對每個我們 spec 中的 function，我們將設計測試以滿足 PC, CC, 和 CACC。
@@ -84,7 +116,6 @@ def create_line_user(self, line_id):
         - F t
             - create_line_user("U123456789")
             - mock 資料庫使 fetchone() 回傳 None
-    - 測試
 - row != None，以下簡稱 P2
     - A: row != None
     - P2: A

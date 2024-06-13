@@ -244,7 +244,7 @@ class TestSearchRecord:
         module = accounting.accountingFunction()
 
         # Act
-        success, records, error_message = module.search_record(1, '20240101', '20240103')
+        success, records, error_message = module.search_record(2, '20240101', '20240103')
 
         # Assert
         assert not success
